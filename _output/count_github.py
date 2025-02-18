@@ -1,26 +1,46 @@
 import pandas as pd
+import os
 
-# Load the CSV files
-files = ["data/question_tags.csv", "data/questions.csv"]  # Replace with actual file names
-count = 0
+
+CSV_DIR = "/home/ubuntu/.ssh/assignment-01-wenjiewang623/.github/assignment-01-wenjiewang623"
+
+
+files = ["question_tags.csv", "questions.csv"]
+total_count = 0
+
+print("Starting GitHub count script...")
 
 for file in files:
+    file_path = os.path.join(CSV_DIR, file)
+    print(f"Checking file: {file_path}")
+
+    if not os.path.exists(file_path):
+        print(f"Warning: {file} not found, skipping...")
+        continue
+
     try:
-        # Read CSV file
-        df = pd.read_csv(file, dtype=str, on_bad_lines="skip")
+        print(f"Reading {file}...")
 
-        # Count occurrences of "GitHub" (case-insensitive) in any column
-        count += df.apply(lambda row: row.astype(str).str.contains("GitHub", case=False, na=False).any(), axis=1).sum()
+        if file == "question_tags.csv":
+          
+            df = pd.read_csv(file_path, usecols=["Tag"], dtype=str, on_bad_lines="skip")
+            count = df["Tag"].str.contains("GitHub", case=False, na=False).sum()
 
-    except FileNotFoundError:
-        print(f"Warning: {file} not found.")
+        else:
+            
+            chunk_size = 250000  
+            text_columns = ["Title", "Body"]  
+            count = 0
+
+            for chunk in pd.read_csv(file_path, usecols=text_columns, dtype=str, chunksize=chunk_size, on_bad_lines="skip"):
+                chunk_count = chunk.astype(str).apply(lambda row: row.str.contains("GitHub", case=False, na=False).any(), axis=1).sum()
+                count += chunk_count
+                print(f"Processed {chunk_size} rows, found {chunk_count} matches...") 
+        total_count += count
+        print(f"Lines containing 'GitHub' in {file}: {count}")
+
     except Exception as e:
         print(f"Error processing {file}: {e}")
 
-# Print the total count
-print(f"Total lines containing 'GitHub': {count}")
-
-# Save the result to a text file
-with open("_output/github_count.txt", "w") as f:
-    f.write(f"Total lines containing 'GitHub': {count}\n")
-
+print(f"Total lines containing 'GitHub': {total_count}")
+print("Script execution completed.")
