@@ -1,26 +1,36 @@
 #!/bin/bash
 
-# Define the absolute path to the directory containing the CSV files
+# Define the directory where the CSV files are located
 CSV_DIR="/home/ubuntu/.ssh/assignment-01-wenjiewang623/.github/assignment-01-wenjiewang623"
 
-# Ensure CSV files exist before proceeding
-if [[ ! -f "$CSV_DIR/questions.csv" ]]; then
-    echo "Error: $CSV_DIR/questions.csv not found!"
-    exit 1
-fi
+# List of CSV files to process
+files=("question_tags.csv")  # Remove questions.csv since it's not relevant
 
-if [[ ! -f "$CSV_DIR/question_tags.csv" ]]; then
-    echo "Error: $CSV_DIR/question_tags.csv not found!"
-    exit 1
+# Initialize count
+total_count=0
 
-fi
+echo "Starting Python count script..."
+echo "--------------------------------"
 
-# Count occurrences of "python" (case-insensitive) in both CSV files
-count_questions=$(grep -i "python" "$CSV_DIR/questions.csv" | wc -l)
-count_tags=$(grep -i "python" "$CSV_DIR/question_tags.csv" | wc -l)
+# Loop through CSV files and count occurrences
+for file in "${files[@]}"; do
+    file_path="$CSV_DIR/$file"
 
-# Display the results
-echo "-------------------------------"
-echo "Lines containing 'python' in questions.csv: $count_questions"
-echo "Lines containing 'python' in question_tags.csv: $count_tags"
-echo "-------------------------------"
+    if [[ -f "$file_path" ]]; then
+        echo "Processing file: $file..."
+
+        # Count occurrences of "python" (case-insensitive)
+        count=$(grep -i "python" "$file_path" | wc -l)
+
+        echo "Lines containing 'python' in $file: $count"
+        total_count=$((total_count + count))
+    else
+        echo "Warning: $file not found, skipping..."
+    fi
+done
+
+# Print total count
+echo "--------------------------------"
+echo "Total lines containing 'python': $total_count"
+echo "Script execution completed."
+
